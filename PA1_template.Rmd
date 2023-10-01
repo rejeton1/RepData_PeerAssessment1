@@ -7,44 +7,49 @@ output:
 
 
 ## Loading and preprocessing the data
-First of all, load required package from here.
-```{r}
+First of all, load required package for our Analysis.
+```{r, message=FALSE}
 library(stats)
 library(base)
 library(dplyr)
 library(ggplot2)
 ```
-
-For Analysis, load data and assign in to object 'activity.
+Package load completed.
+<br/><br/>
+For Analysis, load data and assign it to object 'activity'.
 ```{r}
 activity <- read.csv('activity.csv')
 ```
-
+<br/>
 Here are several samples of data.
 ```{r}
 head(activity)
 ```
 
-There are 3 variables : 'steps', 'date', 'interval', which of 3 means  
-- steps : Number of steps taking in a 5-minute interval  
-- date : The date on which the measurement was taken  
-- interval : Identifier for the 5-minute interval in which measurement was taken
+There are 3 variables : 'steps', 'date', 'interval', which of 3 means,  
 
+* steps : Number of steps taking in a 5-minute interval  
+* date : The date on which the measurement was taken  
+* interval : Identifier for the 5-minute interval in which measurement was taken
+<br/><br/>
 
+  
+  
+    
 ## What is mean total number of steps taken per day?
-First, group the original data by date. And calculate 
+First, group the original data by 'date' variable. And calculate 
 total numbers of steps of each date group.
 
 ```{r}
 total_step_per_day <- activity %>% group_by(date) %>% 
   summarize(total=sum(steps, na.rm = TRUE))
 ```
-
+<br/>
 Here are several results of this calculation.
 ```{r}
 head(total_step_per_day)
 ```
-
+<br/>
 And plot histogram of it.
 ```{r}
 hist(total_step_per_day$total, 
@@ -60,13 +65,13 @@ mean_steps_per_day
 median_steps_per_day
 ```
 
-the mean value is '~~~', and the median value is '~~~'.
-
+the mean value is `r mean_steps_per_day`, and the median value is `r median_steps_per_day`.
+<br/><br/>
 
 ## What is the average daily activity pattern?
-To examine it, We will make Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).  
+To examine it, We will make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, all days (y-axis).  
 For this, We will group the original data by interval value, and
-calculate the average value of steps of each interval group.  
+calculate the average value of steps for each interval group.  
 The following is the code to do that.
 
 ```{r}
@@ -88,8 +93,9 @@ interval_max <-
 interval_max
 ```
 
-The interval that contain maximum number of steps is, '~~~~'.
+The interval that contain maximum number of steps is, `r interval_max`.
 
+<br/><br/>
 
 ## Imputing missing values
 And let's impute missing values.  
@@ -98,7 +104,7 @@ How many missing values in the original dataset(object 'activity')?
 total_NA <- sum(is.na(activity$steps))
 total_NA
 ```
-There are '~~~~' of missing values.  
+There are `r total_NA` of missing values.<br/>
 Let's fill it with the average number of steps per each of 5-minutes interval.
 
 ```{r}
@@ -109,12 +115,12 @@ for(i in 1:2304){
                                                == NA_data$interval[i]]
 }
 ```
-
+<br/>
 Here are some samples of the result value that we filled.
 ```{r}
 head(NA_data)
 ```
-
+<br/>
 And then let's make a new dataset by putting filled data into the original dataset!
 ```{r}
 New_activity <- activity
@@ -127,7 +133,8 @@ sum(is.na(New_activity))
 ```
 
 There is no missing value.  
-Let's See the total number of steps taken each day again with our new dataset!
+<br/><br/>
+Let's see the total number of steps taken each day again with our new dataset!
 ```{r}
 New_total_steps_per_day <- New_activity %>% group_by(date) %>%
   summarize(total=sum(steps))
@@ -140,12 +147,13 @@ And also calculate the mean and median value again.
 ```{r}
 New_mean_per_day <- mean(New_total_steps_per_day$total)
 New_median_per_day <- median(New_total_steps_per_day$total)
+options(scipen=999)
 New_mean_per_day
 New_median_per_day
 ```
 
-the mean value of total number of steps per each day is '~~~'  
-the median value of it is '~~~', in comparison with the fact that each of those values are '~~~', '~~~' in original data.
+the mean value of total number of steps per each day is `r New_mean_per_day`  
+the median value of it is `r New_median_per_day`, in comparison with the fact that each of those values are `r mean_steps_per_day`, `r median_steps_per_day` in original data.
 
 
 
@@ -157,6 +165,10 @@ weekday <- c('월요일', '화요일', '수요일', '목요일', '금요일')
 weekend <- c('토요일', '일요일')
 New_activity$date <- as.Date(New_activity$date, format = "%Y-%m-%d")
 ```
+```{r}
+class(New_activity$date)
+```
+Conversion completed
 
 And then assign the 'level' value('weekday' or 'weekend') to each rows of data in according to the result value of 'weekdays()' function of 'date' variable.
 ```{r}
@@ -168,21 +180,29 @@ for(i in 1:nrow(New_activity)){
   }
 }
 ```
+```{r}
+table(New_activity$level)
+```
+Assign completed.
+
+
 
 And let's see the time-series average number of steps take for 5-minutes interval for each level.  
-For this, group the new data with added 'level' column by level and calculate the mean value for each groups
+For this, group the new data with added 'level' column by level and calculate the mean value for each groups.
 
-```{r}
+```{r, message=FALSE}
 two_level_activity <- New_activity %>% group_by(level, interval) %>% 
   summarize(average=mean(steps))
 ```
 
 And plot it.
-```{r}
+```{r, warning=FALSE}
 g <- qplot(interval, average, data = two_level_activity, geom = 'line',
       facets=level~., 
       color=level, xlab = 'Interval', ylab = 'Steps',
       main = 'Average number of steps per 5-minutes interval')
+```
+```{r}
 g + theme(plot.title=element_text(hjust=0.5))
 ```
 
